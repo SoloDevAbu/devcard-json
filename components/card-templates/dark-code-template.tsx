@@ -52,14 +52,14 @@ export function DarkCodeTemplate({ data }: CardTemplateProps) {
                 {keyMatch ? (
                   <>
                     <span className="text-[#9cdcfe]">
-                      "{keyMatch[1]}"
+                      &quot;{keyMatch[1]}&quot;
                     </span>
                     <span className="text-[#cccccc]">:</span>
                     {stringMatch ? (
                       <>
                         <span className="text-[#cccccc]"> </span>
                         <span className="text-[#ce9178]">
-                          "{stringMatch[1]}"
+                          &quot;{stringMatch[1]}&quot;
                         </span>
                         {line.includes(',') && <span className="text-[#cccccc]">,</span>}
                       </>

@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 interface TemplateSelectorProps {
   onSelect: (theme: CardTheme) => void;
   selectedTheme?: CardTheme;
+  onBack?: () => void;
 }
 
 const templates: CardTemplate[] = [
@@ -37,7 +38,7 @@ const templates: CardTemplate[] = [
   },
 ];
 
-export function TemplateSelector({ onSelect, selectedTheme }: TemplateSelectorProps) {
+export function TemplateSelector({ onSelect, selectedTheme, onBack }: TemplateSelectorProps) {
   return (
     <div className="space-y-6">
       <div>
@@ -67,6 +68,14 @@ export function TemplateSelector({ onSelect, selectedTheme }: TemplateSelectorPr
           </Card>
         ))}
       </div>
+
+      {onBack && (
+        <div className="flex justify-center pt-4">
+          <Button onClick={onBack} variant="ghost">
+            Back to Details
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

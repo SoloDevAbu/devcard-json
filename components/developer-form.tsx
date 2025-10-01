@@ -52,6 +52,12 @@ export function DeveloperForm({ onSubmit }: DeveloperFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold mb-2">Your Information</h2>
+        <p className="text-muted-foreground">
+          Fill in your details to create your developer card
+        </p>
+      </div>
       <div className="space-y-4">
         <div>
           <Label htmlFor="name" className="text-sm font-medium">
