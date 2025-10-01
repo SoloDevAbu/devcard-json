@@ -6,6 +6,7 @@ import { DeveloperForm } from '@/components/developer-form';
 import { TemplateSelector } from '@/components/template-selector';
 import { CardPreview } from '@/components/card-preview';
 import { Header } from '@/components/header';
+import { LoadingOverlay } from '@/components/loading-overlay';
 import { DeveloperData, CardTheme } from '@/lib/types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -18,6 +19,7 @@ export default function Home() {
   const [developerData, setDeveloperData] = useState<DeveloperData | null>(null);
   const [selectedTheme, setSelectedTheme] = useState<CardTheme | undefined>();
   const [currentCardId, setCurrentCardId] = useState<string | undefined>();
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleFormSubmit = async (data: DeveloperData) => {
     setDeveloperData(data);
@@ -26,6 +28,10 @@ export default function Home() {
 
   const handleTemplateSelect = async (theme: CardTheme) => {
     setSelectedTheme(theme);
+    setIsLoading(true);
+    
+    // Simulate a small delay for better UX
+    await new Promise(resolve => setTimeout(resolve, 500));
     
     // Save card to database
     if (developerData) {
@@ -53,6 +59,7 @@ export default function Home() {
       }
     }
     
+    setIsLoading(false);
     setStep('preview');
   };
 
@@ -65,11 +72,13 @@ export default function Home() {
     setDeveloperData(null);
     setSelectedTheme(undefined);
     setCurrentCardId(undefined);
+    setIsLoading(false);
   };
 
   return (
     <>
       <Header />
+      {isLoading && <LoadingOverlay />}
       <div className="min-h-[calc(100vh-73px)] bg-gradient-to-br from-background via-background to-primary/5">
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-4xl mx-auto">
@@ -147,6 +156,7 @@ export default function Home() {
                       onSelect={handleTemplateSelect}
                       selectedTheme={selectedTheme}
                       onBack={handleStartOver}
+                      isLoading={isLoading}
                     />
                   </motion.div>
                 )}

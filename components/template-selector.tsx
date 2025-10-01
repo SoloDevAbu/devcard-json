@@ -1,13 +1,16 @@
 'use client';
 
+import { useState } from 'react';
 import { CardTheme, CardTemplate } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Loader2 } from 'lucide-react';
 
 interface TemplateSelectorProps {
   onSelect: (theme: CardTheme) => void;
   selectedTheme?: CardTheme;
   onBack?: () => void;
+  isLoading?: boolean;
 }
 
 const templates: CardTemplate[] = [
@@ -38,7 +41,13 @@ const templates: CardTemplate[] = [
   },
 ];
 
-export function TemplateSelector({ onSelect, selectedTheme, onBack }: TemplateSelectorProps) {
+export function TemplateSelector({ onSelect, selectedTheme, onBack, isLoading = false }: TemplateSelectorProps) {
+  const handleTemplateSelect = (theme: CardTheme) => {
+    if (!isLoading) {
+      onSelect(theme);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -52,15 +61,24 @@ export function TemplateSelector({ onSelect, selectedTheme, onBack }: TemplateSe
         {templates.map((template) => (
           <Card
             key={template.id}
-            className={`p-6 cursor-pointer transition-all hover:shadow-lg ${
+            className={`p-6 transition-all ${
+              isLoading
+                ? 'cursor-not-allowed opacity-50'
+                : 'cursor-pointer hover:shadow-lg hover:border-primary/50'
+            } ${
               selectedTheme === template.id
                 ? 'ring-2 ring-primary'
-                : 'hover:border-primary/50'
+                : ''
             }`}
-            onClick={() => onSelect(template.id)}
+            onClick={() => handleTemplateSelect(template.id)}
           >
             <div className="space-y-2">
-              <h3 className="text-lg font-semibold">{template.name}</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">{template.name}</h3>
+                {isLoading && selectedTheme === template.id && (
+                  <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                )}
+              </div>
               <p className="text-sm text-muted-foreground">
                 {template.description}
               </p>
@@ -71,7 +89,7 @@ export function TemplateSelector({ onSelect, selectedTheme, onBack }: TemplateSe
 
       {onBack && (
         <div className="flex justify-center pt-4">
-          <Button onClick={onBack} variant="ghost">
+          <Button onClick={onBack} variant="ghost" disabled={isLoading}>
             Back to Details
           </Button>
         </div>
