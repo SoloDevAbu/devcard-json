@@ -1,26 +1,58 @@
 'use client';
 
 import { useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { DeveloperForm } from '@/components/developer-form';
 import { TemplateSelector } from '@/components/template-selector';
 import { CardPreview } from '@/components/card-preview';
+import { Header } from '@/components/header';
 import { DeveloperData, CardTheme } from '@/lib/types';
-import { Code as Code2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 
 type Step = 'form' | 'template' | 'preview';
 
 export default function Home() {
+  const { data: session } = useSession();
   const [step, setStep] = useState<Step>('form');
   const [developerData, setDeveloperData] = useState<DeveloperData | null>(null);
   const [selectedTheme, setSelectedTheme] = useState<CardTheme | undefined>();
+  const [currentCardId, setCurrentCardId] = useState<string | undefined>();
 
-  const handleFormSubmit = (data: DeveloperData) => {
+  const handleFormSubmit = async (data: DeveloperData) => {
     setDeveloperData(data);
     setStep('template');
   };
 
-  const handleTemplateSelect = (theme: CardTheme) => {
+  const handleTemplateSelect = async (theme: CardTheme) => {
     setSelectedTheme(theme);
+    
+    // Save card to database
+    if (developerData) {
+      try {
+        const response = await fetch('/api/cards', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...developerData,
+            theme,
+          }),
+        });
+
+        if (response.ok) {
+          const card = await response.json();
+          setCurrentCardId(card.id);
+          if (session) {
+            toast.success('Card saved to your dashboard!');
+          }
+        }
+      } catch (error) {
+        console.error('Error saving card:', error);
+      }
+    }
+    
     setStep('preview');
   };
 
@@ -28,99 +60,159 @@ export default function Home() {
     setStep('template');
   };
 
+  const handleStartOver = () => {
+    setStep('form');
+    setDeveloperData(null);
+    setSelectedTheme(undefined);
+    setCurrentCardId(undefined);
+  };
+
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <Code2 className="w-10 h-10" />
-              <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-                DevCard Generator
+    <>
+      <Header />
+      <div className="min-h-[calc(100vh-73px)] bg-gradient-to-br from-background via-background to-primary/5">
+        <div className="container mx-auto px-4 py-12">
+          <div className="max-w-4xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="text-center mb-12"
+            >
+              <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                Create Stunning Developer Cards
               </h1>
-            </div>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Create stunning developer cards to showcase your skills and profile
-            </p>
-          </div>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Showcase your skills and profile with beautiful, customizable developer cards
+              </p>
+            </motion.div>
 
-          <div className="mb-8">
-            <div className="flex items-center justify-center gap-2">
-              <div
-                className={`flex items-center gap-2 ${
-                  step === 'form' ? 'text-primary' : 'text-muted-foreground'
-                }`}
-              >
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-                    step === 'form'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted'
-                  }`}
-                >
-                  1
-                </div>
-                <span className="hidden sm:inline text-sm font-medium">Details</span>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="mb-8"
+            >
+              <div className="flex items-center justify-center gap-2">
+                <StepIndicator
+                  number={1}
+                  label="Details"
+                  isActive={step === 'form'}
+                  isCompleted={step !== 'form'}
+                />
+                <div className="w-12 md:w-20 h-px bg-border" />
+                <StepIndicator
+                  number={2}
+                  label="Template"
+                  isActive={step === 'template'}
+                  isCompleted={step === 'preview'}
+                />
+                <div className="w-12 md:w-20 h-px bg-border" />
+                <StepIndicator
+                  number={3}
+                  label="Download"
+                  isActive={step === 'preview'}
+                  isCompleted={false}
+                />
               </div>
-              <div className="w-12 md:w-20 h-px bg-border" />
-              <div
-                className={`flex items-center gap-2 ${
-                  step === 'template' ? 'text-primary' : 'text-muted-foreground'
-                }`}
-              >
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-                    step === 'template'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted'
-                  }`}
-                >
-                  2
-                </div>
-                <span className="hidden sm:inline text-sm font-medium">Template</span>
-              </div>
-              <div className="w-12 md:w-20 h-px bg-border" />
-              <div
-                className={`flex items-center gap-2 ${
-                  step === 'preview' ? 'text-primary' : 'text-muted-foreground'
-                }`}
-              >
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-                    step === 'preview'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted'
-                  }`}
-                >
-                  3
-                </div>
-                <span className="hidden sm:inline text-sm font-medium">Download</span>
-              </div>
-            </div>
-          </div>
+            </motion.div>
 
-          <div className="bg-card rounded-lg border p-8 shadow-sm">
-            {step === 'form' && <DeveloperForm onSubmit={handleFormSubmit} />}
-            {step === 'template' && (
-              <TemplateSelector
-                onSelect={handleTemplateSelect}
-                selectedTheme={selectedTheme}
-              />
-            )}
-            {step === 'preview' && developerData && selectedTheme && (
-              <CardPreview
-                data={developerData}
-                theme={selectedTheme}
-                onBack={handleBack}
-              />
-            )}
-          </div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-card rounded-lg border shadow-lg p-8"
+            >
+              <AnimatePresence mode="wait">
+                {step === 'form' && (
+                  <motion.div
+                    key="form"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <DeveloperForm onSubmit={handleFormSubmit} />
+                  </motion.div>
+                )}
+                {step === 'template' && (
+                  <motion.div
+                    key="template"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <TemplateSelector
+                      onSelect={handleTemplateSelect}
+                      selectedTheme={selectedTheme}
+                      onBack={handleStartOver}
+                    />
+                  </motion.div>
+                )}
+                {step === 'preview' && developerData && selectedTheme && (
+                  <motion.div
+                    key="preview"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <CardPreview
+                      data={developerData}
+                      theme={selectedTheme}
+                      onBack={handleBack}
+                      cardId={currentCardId}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
 
-          <div className="mt-8 text-center text-sm text-muted-foreground">
-            <p>Made for developers, by developers</p>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="mt-8 text-center text-sm text-muted-foreground"
+            >
+              <p>Made with ❤️ for developers, by developers</p>
+            </motion.div>
           </div>
         </div>
       </div>
+    </>
+  );
+}
+
+interface StepIndicatorProps {
+  number: number;
+  label: string;
+  isActive: boolean;
+  isCompleted: boolean;
+}
+
+function StepIndicator({ number, label, isActive, isCompleted }: StepIndicatorProps) {
+  return (
+    <div
+      className={`flex items-center gap-2 transition-colors ${
+        isActive ? 'text-primary' : isCompleted ? 'text-primary/60' : 'text-muted-foreground'
+      }`}
+    >
+      <motion.div
+        animate={{
+          scale: isActive ? 1.1 : 1,
+        }}
+        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
+          isActive
+            ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/50'
+            : isCompleted
+            ? 'bg-primary/20 text-primary'
+            : 'bg-muted'
+        }`}
+      >
+        {number}
+      </motion.div>
+      <span className="hidden sm:inline text-sm font-medium">{label}</span>
     </div>
   );
 }
