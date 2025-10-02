@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useSession } from 'next-auth/react';
 import { DeveloperForm } from '@/components/developer-form';
 import { TemplateSelector } from '@/components/template-selector';
 import { CardPreview } from '@/components/card-preview';
@@ -9,16 +8,13 @@ import { Header } from '@/components/header';
 import { LoadingOverlay } from '@/components/loading-overlay';
 import { DeveloperData, CardTheme } from '@/lib/types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { toast } from 'sonner';
 
 type Step = 'form' | 'template' | 'preview';
 
 export default function Home() {
-  const { data: session } = useSession();
   const [step, setStep] = useState<Step>('form');
   const [developerData, setDeveloperData] = useState<DeveloperData | null>(null);
   const [selectedTheme, setSelectedTheme] = useState<CardTheme | undefined>();
-  const [currentCardId, setCurrentCardId] = useState<string | undefined>();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleFormSubmit = async (data: DeveloperData) => {
@@ -33,32 +29,6 @@ export default function Home() {
     // Simulate a small delay for better UX
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    // Save card to database
-    if (developerData) {
-      try {
-        const response = await fetch('/api/cards', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            ...developerData,
-            theme,
-          }),
-        });
-
-        if (response.ok) {
-          const card = await response.json();
-          setCurrentCardId(card.id);
-          if (session) {
-            toast.success('Card saved to your dashboard!');
-          }
-        }
-      } catch (error) {
-        console.error('Error saving card:', error);
-      }
-    }
-    
     setIsLoading(false);
     setStep('preview');
   };
@@ -71,7 +41,6 @@ export default function Home() {
     setStep('form');
     setDeveloperData(null);
     setSelectedTheme(undefined);
-    setCurrentCardId(undefined);
     setIsLoading(false);
   };
 
@@ -172,7 +141,6 @@ export default function Home() {
                       data={developerData}
                       theme={selectedTheme}
                       onBack={handleBack}
-                      cardId={currentCardId}
                     />
                   </motion.div>
                 )}
