@@ -8,7 +8,12 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'DevCard Generator - Create Beautiful Developer Cards',
-  description: 'Create stunning developer cards to showcase your skills and profile. Download unlimited cards with Google sign-in.',
+  description: 'Create stunning developer cards to showcase your skills and profile. Download unlimited cards in PNG, SVG, and JSON formats.',
+  icons: {
+    icon: '/logo.png',
+    shortcut: '/logo.png',
+    apple: '/logo.png',
+  },
 };
 
 export default function RootLayout({
